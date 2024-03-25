@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions Dashboard</title>
+    <!-- Include any necessary CSS libraries or stylesheets -->
+</head>
+<body>
+    <h1>Transactions Dashboard</h1>
+    
+    <!-- Transactions Table -->
+    <div id="transactionsTable">
+        <h2>Transactions Table</h2>
+        <!-- Dropdown for selecting month -->
+        <select id="monthDropdown">
+            <!-- Options will be dynamically populated using JavaScript -->
+        </select>
+        <!-- Search box -->
+        <input type="text" id="searchInput" placeholder="Search transactions...">
+        <!-- Table to display transactions -->
+        <table id="transactions">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <!-- Add more table headers if needed -->
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Transactions will be dynamically populated using JavaScript -->
+            </tbody>
+        </table>
+        <!-- Pagination buttons -->
+        <button id="prevBtn">Previous</button>
+        <button id="nextBtn">Next</button>
+    </div>
+
+    <!-- Transactions Statistics -->
+    <div id="transactionsStats">
+        <h2>Transactions Statistics</h2>
+        <div id="statsContainer">
+            <!-- Statistics will be dynamically populated using JavaScript -->
+        </div>
+    </div>
+
+    <!-- Transaction Bar Chart -->
+    <div id="transactionsChart">
+        <h2>Transaction Bar Chart</h2>
+        <canvas id="barChart"></canvas>
+    </div>
+
+    <!-- Include any necessary JavaScript files or libraries -->
+    <script src="your_api_functions.js"></script>
+    <script src="frontend_logic.js"></script>
+</body>
+</html>

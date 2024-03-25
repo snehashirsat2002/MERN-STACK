@@ -1,0 +1,82 @@
+from flask import Flask, request, jsonify
+from flask_mongoengine import MongoEngine
+from mongoengine import Q
+import axios
+
+app = Flask(__name__)
+app.config['MONGODB_SETTINGS'] = {
+    'db': 'product_transaction',
+    'host': 'mongodb://localhost:27017/',
+    'username': '',
+    'password': '',
+    'authentication_source': '',
+}
+db = MongoEngine(app)
+
+class ProductTransaction(db.Document):
+    productId = db.StringField(required=True)
+    dateOfSale = db.DateTimeField(required=True)
+    quantity = db.IntField(required=True)
+
+@app.route('/initialize', methods=['GET'])
+def initialize():
+    response = axios.get('https://s3.amazonaws.com/roxiler.com/product_transaction.json')
+    transactions = response.data
+    ProductTransaction.insert_many(transactions)
+    return jsonify({'message': 'Database initialized successfully'})
+
+@app.route('/transactions', methods=['GET'])
+def get_transactions():
+    search = request.args.get('search')
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 10))
+
+    if search:
+        transactions = ProductTransaction.objects(Q(productId__icontains=search) | Q(dateOfSale__icontains=search) | Q(quantity__icontains=search))
+    else:
+        transactions = ProductTransaction.objects().order_by('-dateOfSale')
+
+    total_pages = transactions.count() // per_page + (transactions.count() % per_page > 0)
+    transactions = transactions.skip((page - 1) * per_page).limit(per_page)
+
+    return jsonify({'transactions': [transaction.to_mongo() for transaction in transactions], 'total_pages': total_pages})
+
+@app.route('/statistics', methods=['GET'])
+def get_statistics():
+    month = int(request.args.get('month'))
+    transactions = ProductTransaction.objects(dateOfSale__month=month)
+
+    total_sale_amount = sum([transaction.quantity * transaction.productId.price for transaction in transactions])
+    total_sold_items = sum([transaction.quantity for transaction in transactions])
+    total_not_sold_items = ProductTransaction.objects().count() - total_sold_items
+
+    return jsonify({'total_sale_amount': total_sale_amount, 'total_sold_items': total_sold_items, 'total_not_sold_items': total_not_sold_items})
+
+@app.route('/bar-chart', methods=['GET'])
+def get_bar_chart():
+    month = int(request.args.get('month'))
+    transactions = ProductTransaction.objects(dateOfSale__month=month)
+
+    price_ranges = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 'above']
+    price_counts = [0] * len(price_ranges)
+
+    for transaction in transactions:
+        price = transaction.productId.price
+        for i, range in enumerate(price_ranges):
+            if i == len(price_ranges) - 1 or price <= range:
+                price_counts[i] += 1
+                break
+
+    return jsonify({'price_ranges': price_ranges, 'price_counts': price_counts})
+
+@app.route('/pie-chart', methods=['GET'])
+def get_pie_chart():
+    month = int(request.args.get('month'))
+    transactions = ProductTransaction.objects(dateOfSale__month=month)
+
+    categories = set([transaction.productId.category for transaction in transactions])
+    category_counts = {category: 0 for category in categories}
+
+    for transaction in transactions:
+        category_counts[transaction.productId.category] 
+        

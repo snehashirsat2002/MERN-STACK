@@ -1,0 +1,39 @@
+const axios = require('axios');
+const connection = require('./database');
+const csvParser = require('csv-parser');
+
+const seedDatabase = async () => {
+  try {
+    const response = await axios.get('https://s3.amazonaws.com/roxiler.com/product_transaction.json');
+    const data = response.data;
+
+    const query = `
+      INSERT INTO product_transaction (product_id, transaction_date, price, quantity, category)
+      VALUES ?
+    `;
+
+    const values = data.map(item => {
+      const date = new Date(item.dateOfSale);
+      const dateString = `${date.getFullYear()}-${(`0${(date.getMonth() + 1)}`).slice(-2)}-${(`0${date.getDate()} `).slice(-2)}`;
+      const category = item.product.category;
+
+      return [
+        item.product.id,
+        dateString,
+        item.product.price,
+        item.quantity,
+        category,
+      ];
+    });
+
+    connection.query(query, [values], (err, result) => {
+      if (err) throw err;
+      console.log(`Inserted ${result.affectedRows} rows`);
+    });
+
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+seedDatabase();
